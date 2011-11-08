@@ -16,38 +16,56 @@
  */
 class Qibench_SeedpointsController extends Qibench_AppController {
 
+  public $_moduleModels = array('Lesionseedpoint');
+  public $_moduleDaos = array('Lesionseedpoint');
+  //public $_moduleComponents = array('LesionseedpointCSV');
 
-  /** simple upload*/
-  public function uploadAction()
+  /** view seedpoints action */
+  public function viewAction()
     {
-    if(!$this->logged)
+      
+    //$filepath = '/home/mgrauer/dev/buckler_nist/bm/lesionseedpoints.txt';
+    //$contents = file($filepath, FILE_IGNORE_NEW_LINES);
+    //$lesionseedpointDaos = $this->ModuleComponent->LesionseedpointCSV->parseAndSave(false, ',', $contents);
+ 
+      
+      
+      
+    $this->view->header = $this->t("Lesion Seedpoints");
+    $this->view->seedpointDaos = $this->Qibench_Lesionseedpoint->getAll();
+    //var_dump($lesions);
+    /*
+    foreach($seedpoints as $ind=>$seedpoint)
+  {
+  echo '<tr>';
+  $row = $seedpoint['NistqiLesionSeedpoint'];
+  foreach($row as $colName=>$colVal)*/
+    
+    
+/*    
+    $this->view->Date = $this->Component->Date;
+    $this->view->Utility = $this->Component->Utility;
+    $itemId = $this->_getParam("itemId");
+    if(!isset($itemId) || !is_numeric($itemId))
       {
-      throw new Zend_Exception("You have to be logged in to do that");
+      throw new Zend_Exception("itemId  should be a number");
       }
-    if(!$this->getRequest()->isXmlHttpRequest() && !$this->isTestingEnv())
+    $itemDao = $this->Item->load($itemId);
+    if($itemDao === false)
       {
-      throw new Zend_Exception("Error, should be an ajax action.");
+      throw new Zend_Exception("This item doesn't exist.");
       }
-    $this->disableLayout();
-    $this->view->form = $this->getFormAsArray($this->Form->Upload->createUploadLinkForm());
-    $this->userSession->uploaded = array();
-    $this->view->selectedLicense = Zend_Registry::get('configGlobal')->defaultlicense;
-
-    $this->view->defaultUploadLocation = $this->userSession->Dao->getPrivatefolderId();
-    $this->view->defaultUploadLocationText = $this->t('My Private Folder');
-
-    $parent = $this->_getParam('parent');
-    if(isset($parent))
+    if(!$this->Item->policyCheck($itemDao, $this->userSession->Dao))
       {
-      $parent = $this->Folder->load($parent);
-      if($this->logged && $parent != false)
-        {
-        $this->view->defaultUploadLocation = $parent->getKey();
-        $this->view->defaultUploadLocationText = $parent->getName();
-        }
+      throw new Zend_Exception("Problem policies.");
       }
 
-    }//end simple upload
+    $this->view->isAdmin = $this->Item->policyCheck($itemDao, $this->userSession->Dao, MIDAS_POLICY_ADMIN);
+    $this->view->isModerator = $this->Item->policyCheck($itemDao, $this->userSession->Dao, MIDAS_POLICY_WRITE);
+    $itemRevision = $this->Item->getLastRevision($itemDao);
+*/
+
+    }//end view
 
 
 }

@@ -10,7 +10,7 @@ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE.  See the above copyright notices for more information.
 =========================================================================*/
 /** LesionseedpointModel Base class */
-class Qibench_LesionseedpointModelBase extends Qibench_AppModel {
+abstract class Qibench_LesionseedpointModelBase extends Qibench_AppModel {
 
   /**
    * constructor
@@ -42,6 +42,8 @@ class Qibench_LesionseedpointModelBase extends Qibench_AppModel {
 
 
 
+  /** Abstract functions */
+  abstract function getAll();
 
 
 }  // end class Qibench_LesionseedpointModelBase
