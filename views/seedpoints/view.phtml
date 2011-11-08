@@ -91,4 +91,14 @@ foreach($this->seedpointDaos as $ind=>$seedpointDao)
 </tbody>
 </table>
 
+     <?php
+      echo "
+      <form class='genericForm' id='seedpointsForm' method='{$this->seedpointsForm['method']}'  action='{$this->seedpointsForm['action']}'>
+          <div>
+            {$this->seedpointsForm['submitExecute']}
+          </div>
+       </form>";
+       ?>
+ 
+
 </div>

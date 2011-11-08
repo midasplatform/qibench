@@ -36,7 +36,7 @@ class LesionseedpointCSVComponentTest extends ControllerTestCase
     $this->setupDatabase(array('default'));
     $this->enabledModules = array('qibench');
     parent::setUp();
-    if(!isset($this->kwBatchmakeComponent))
+    if(!isset($this->lesionseedpointCSVComponent))
       {
       $this->lesionseedpointCSVComponent = new Qibench_LesionseedpointCSVComponent();
       }
