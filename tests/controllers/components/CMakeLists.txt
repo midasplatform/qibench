@@ -1,0 +1,2 @@
+add_midas_test( QibenchLesionseedpointCSVComponent LesionseedpointCSVComponentTest.php )
+add_midas_test( QibenchExecuteComponent ExecuteComponentTest.php )

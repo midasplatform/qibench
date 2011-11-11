@@ -1,0 +1,104 @@
+<?php
+/*=========================================================================
+MIDAS Server
+Copyright (c) Kitware SAS. 20 rue de la Villette. All rights reserved.
+69328 Lyon, FRANCE.
+
+See Copyright.txt for details.
+This software is distributed WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.  See the above copyright notices for more information.
+=========================================================================*/
+
+$this->headScript()->appendFile($this->coreWebroot . '/public/js/jquery/jquery.form.js');
+$this->headScript()->appendFile($this->apiWebroot.'/public/js/common/common.ajaxapi.js');
+$this->headScript()->appendFile($this->moduleWebroot.'/public/js/jquery.dataTables.js');
+?>
+<link type="text/css" rel="stylesheet" href="<?php echo $this->coreWebroot?>/public/css/common/common.genericPage.css" />
+<link type="text/css" rel="stylesheet" href="<?php echo $this->moduleWebroot?>/public/css/seedpoints/demo_table.css" />
+<div class="viewMain">
+
+<script type="text/javascript">
+  jQuery(document).ready(function()
+    {
+    jQuery("#seedpoints_table").dataTable(
+      {
+      "sScrollY": "200px",
+      "bFilter": true,
+      "bPaginate": false,
+      "bSort": true,
+      "bInfo": true,
+      "aaSorting": [ [0,'asc'], [1,'asc'] ]
+      }
+    );
+
+    } );
+</script>
+
+
+<table id="seedpoints_table" class="display">
+<thead>
+
+
+<?php
+echo '<tr class="header_row">';
+
+$tableHeaders = array(
+  'nistqi_lesion_seedpoints_id' => 'id',
+  'case_id' => 'case id',
+  'lesion_id' => 'lesion id',
+  'seed_x' => 'seed x',
+  'seed_y' => 'seed y',
+  'seed_z' => 'seed z',
+  'bounding_box_x0' => 'x0',
+  'bounding_box_x1' => 'x1',
+  'bounding_box_y0' => 'y0',
+  'bounding_box_y1' => 'y1',
+  'bounding_box_z0' => 'z0',
+  'bounding_box_z1' => 'z1',
+  'is_in_physical_space' => 'physical space');
+
+
+$excludedCols = array(
+  'nistqi_lesion_seedpoints_id' => 'nistqi_lesion_seedpoints_id',
+  'is_in_physical_space' => 'is_in_physical_space');
+
+
+foreach($tableHeaders as $dbCol => $tableHeader)
+  {
+  if(array_search($dbCol,$excludedCols)) continue;
+  echo '<th>'.$tableHeader.'</th>';
+  }
+?>
+</tr>
+</thead>
+<tbody>
+<?php
+foreach($this->seedpointDaos as $ind=>$seedpointDao)
+  {
+  echo '<tr>';
+//  $seedpointDao = $seedpoint['NistqiLesionSeedpoint'];
+  foreach($tableHeaders as $dbCol => $tableHeader)
+    {
+    if(array_search($dbCol,$excludedCols)) continue;
+    echo '<td><div>'.$seedpointDao->get($dbCol).'</div></td>';
+    }
+  
+  echo "</tr>";
+  }
+?>
+
+</tbody>
+</table>
+
+     <?php
+      echo "
+      <form class='genericForm' id='seedpointsForm' method='{$this->seedpointsForm['method']}'  action='{$this->seedpointsForm['action']}'>
+          <div>
+            {$this->seedpointsForm['submitExecute']}
+          </div>
+       </form>";
+       ?>
+ 
+
+</div>
