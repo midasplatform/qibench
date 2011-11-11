@@ -46,23 +46,3 @@ CREATE TABLE IF NOT EXISTS `qibench_lesionseedpoint` (
   PRIMARY KEY (`qibench_lesionseedpoint_id`),
   UNIQUE unique_case_lesion (`case_id`, `lesion_id`)
 )   DEFAULT CHARSET=utf8;
-
-
-
-CREATE TABLE IF NOT EXISTS `condor_dag` (
-  `condor_dag_id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `batchmake_task_id` bigint(20) NOT NULL,
-  `log_filename` text NOT NULL,
-  PRIMARY KEY (`condor_dag_id`)
-)   DEFAULT CHARSET=utf8;
-
-
-CREATE TABLE IF NOT EXISTS `condor_job` (
-  `condor_job_id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `condor_dag_id` bigint(20) NOT NULL,
-  `jobdefinition_filename` text NOT NULL,
-  `output_filename` text NOT NULL,
-  `error_filename` text NOT NULL,
-  `log_filename` text NOT NULL,
-  PRIMARY KEY (`condor_job_id`)
-)   DEFAULT CHARSET=utf8;
