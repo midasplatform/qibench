@@ -9,21 +9,10 @@ This software is distributed WITHOUT ANY WARRANTY; without even
 the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE.  See the above copyright notices for more information.
 =========================================================================*/
-require_once BASE_PATH . '/modules/api/library/APIEnabledNotification.php';
+require_once BASE_PATH . '/modules/qibench/models/base/RunItemScalarvalueModelBase.php';
 
-/** notification manager*/
-class Qibench_Notification extends ApiEnabled_Notification
-  {
-  public $moduleName = 'qibench';
-  public $_moduleComponents=array('Api');
-    
-  /** init notification process*/
-  public function init()
-    {
-    $this->enableWebAPI($this->moduleName);  
-    }//end init
 
-  } //end class
-    
-    
-?>
+/** Qibench_RunItemScalarvalueModel */
+class Qibench_RunItemScalarvalueModel extends Qibench_RunItemScalarvalueModelBase {
+
+}

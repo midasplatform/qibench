@@ -1,0 +1,35 @@
+Include(LesionSegmentationQIBench.config.bms)
+
+# Loop through the sequence of job indices
+ForEach(jobInd ${cfg_jobInds})
+
+  # get each of the param values for this particular job
+  GetParam(itemID ${cfg_itemIDs} ${jobInd})
+  GetParam(itemName ${cfg_itemNames} ${jobInd})
+  GetParam(outputStem ${cfg_outputStems} ${jobInd})
+  GetParam(seed ${cfg_seeds} ${jobInd})
+  GetParam(roi ${cfg_rois} ${jobInd})
+  GetParam(usePhysicalSpace ${cfg_usePhysicalSpaces} ${jobInd})
+
+  # define the output filenames
+  Set(outputImage ${outputStem}.mha)
+  Set(outputAIM ${outputStem}.xml)
+  Set(outputMesh ${outputStem}.stl)
+
+  # Set the Application Properties to be passed to the condor scripts
+  SetApp(seg @LesionSegmentationQIBench)
+  SetAppOption(seg.InputDICOMDir.InputDICOMDir ${cfg_collection_dir}/${itemID})
+  SetAppOption(seg.OutputImage.OutputImage ${cfg_output_directory}/${outputImage})
+  SetAppOption(seg.OutputAIM.OutputAIM ${cfg_output_directory}/${outputAIM})
+  SetAppOption(seg.OutputMesh.OutputMesh ${cfg_output_directory}/${outputMesh})
+  SetAppOption(seg.Seeds.Seeds ${seed})
+  SetAppOption(seg.ROI.ROI ${roi})
+  SetAppOption(seg.UsePhysicalSpace.UsePhysicalSpace ${usePhysicalSpace})
+  SetAppOption(seg.OffsetFromOrigin.OffsetFromOrigin 1)
+  CondorPostScript(seg ${cfg_exe} ${cfg_condorpostscript} ${cfg_output_directory} ${cfg_outputFolderID} ${itemName} ${outputAIM} ${outputImage} ${outputMesh})
+  Run(output ${seg})
+
+
+EndForEach()
+
+Exit()
