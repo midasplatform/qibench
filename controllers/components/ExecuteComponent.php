@@ -16,116 +16,6 @@ class Qibench_ExecuteComponent extends AppComponent
   {
 
     
-/*  protected $kwBatchmakeComponent;
-  protected $applicationConfig;
-
-  /* * set up tests* /
-  public function setUp()
-    {
-    $this->setupDatabase(array('default'));
-    $this->_models = array('User');
-    $this->enabledModules = array('batchmake');
-    parent::setUp();
-    if(!isset($this->kwBatchmakeComponent))
-      {
-      require_once BASE_PATH.'/modules/batchmake/controllers/components/KWBatchmakeComponent.php';
-      require_once BASE_PATH.'/modules/batchmake/tests/library/ExecutorMock.php';
-      $executor = new Batchmake_ExecutorMock();
-      $this->kwBatchmakeComponent = new Batchmake_KWBatchmakeComponent($this->setupAndGetConfig(), $executor);
-      }
-    } */
-    
-   /** save upload item in the DB */
-  public function createUploadedItem($userDao, $name, $path, $parent = null, $license = null, $filemd5 = '')
-    {
-    $modelLoad = new MIDAS_ModelLoader();
-    $itemModel = $modelLoad->loadModel('Item');
-    $feedModel = $modelLoad->loadModel('Feed');
-    $folderModel = $modelLoad->loadModel('Folder');
-    $bitstreamModel = $modelLoad->loadModel('Bitstream');
-    $assetstoreModel = $modelLoad->loadModel('Assetstore');
-    $feedpolicygroupModel = $modelLoad->loadModel('Feedpolicygroup');
-    $itemRevisionModel = $modelLoad->loadModel('ItemRevision');
-    $feedpolicyuserModel = $modelLoad->loadModel('Feedpolicyuser');
-    $itempolicyuserModel = $modelLoad->loadModel('Itempolicyuser');
-
-    if($userDao == null)
-      {
-      throw new Zend_Exception('Please log in');
-      }
-
-    if($parent == null)
-      {
-      $parent = $userDao->getPrivateFolder();
-      }
-    if(is_numeric($parent))
-      {
-      $parent = $folderModel->load($parent);
-      }
-
-    if($parent == false || !$folderModel->policyCheck($parent, $userDao, MIDAS_POLICY_WRITE))
-      {
-      throw new Zend_Exception('Parent permissions errors');
-      }
-
-    Zend_Loader::loadClass("ItemDao", BASE_PATH . '/core/models/dao');
-    $item = new ItemDao;
-    $item->setName($name);
-    $item->setDescription('');
-    $item->setType(0);
-    $item->setThumbnail('');
-    $itemModel->save($item);
-
-    $feed = $feedModel->createFeed($userDao, MIDAS_FEED_CREATE_ITEM, $item);
-
-    $folderModel->addItem($parent, $item);
-    $itemModel->copyParentPolicies($item, $parent, $feed);
-
-    $feedpolicyuserModel->createPolicy($userDao, $feed, MIDAS_POLICY_ADMIN);
-    $itempolicyuserModel->createPolicy($userDao, $item, MIDAS_POLICY_ADMIN);
-
-    Zend_Loader::loadClass("ItemRevisionDao", BASE_PATH . '/core/models/dao');
-    $itemRevisionDao = new ItemRevisionDao;
-    $itemRevisionDao->setChanges('Initial revision');
-    $itemRevisionDao->setUser_id($userDao->getKey());
-    $itemRevisionDao->setDate(date('c'));
-    $itemRevisionDao->setLicense($license);
-    $itemModel->addRevision($item, $itemRevisionDao);
-
-    // Add bitstreams to the revision
-    Zend_Loader::loadClass('BitstreamDao', BASE_PATH.'/core/models/dao');
-    $bitstreamDao = new BitstreamDao;
-    $bitstreamDao->setName($name);
-    $bitstreamDao->setPath($path);
-    $bitstreamDao->setChecksum($filemd5);
-    $bitstreamDao->fillPropertiesFromPath();
-
-    $assetstoreDao = $assetstoreModel->getDefault();
-    $bitstreamDao->setAssetstoreId($assetstoreDao->getKey());
-
-    if($assetstoreDao == false)
-      {
-      throw new Zend_Exception("Unable to load default assetstore");
-      }
-
-    // Upload the bitstream if necessary (based on the assetstore type)
-    $this->uploadBitstream($bitstreamDao, $assetstoreDao);
-    $checksum = $bitstreamDao->getChecksum();
-    $tmpBitstreamDao = $bitstreamModel->getByChecksum($checksum);
-    if($tmpBitstreamDao != false)
-      {
-      $bitstreamDao->setPath($tmpBitstreamDao->getPath());
-      $bitstreamDao->setAssetstoreId($tmpBitstreamDao->getAssetstoreId());
-      }
-    $itemRevisionModel->addBitstream($itemRevisionDao, $bitstreamDao);
-
-    $this->getLogger()->info(__METHOD__.' Upload ok :'.$path);
-    Zend_Registry::get('notifier')->notifyEvent("EVENT_CORE_UPLOAD_FILE", array($item->toArray(), $itemRevisionDao->toArray()));
-    return $item;
-    }//end createUploadedItem
-  
-    
-    
     
     
   // will generate the config params needed for batchmake execution, but
@@ -137,151 +27,298 @@ class Qibench_ExecuteComponent extends AppComponent
   
 //    $configParams = $this->generateConfigParams($outputFolderId, $outputItemStem, $taskDao, $inputFolderId);//, $$output_collection_id,$output_item_stem,$tmp_dir,$input_collection_dir);
   
-  protected function generateConfigParams($outputFolderId, $outputItemStem, $taskDao, $inputFolderId, $inputItemIds, $userDao)
-      //$output_collection_id,$output_item_stem,$tmp_dir,$input_collection_dir)
+/*     
+     // will generate the jobs for the input collection.  comparing the
+  // item_names in the input collection with the seedpoints stored in the DB,
+  // for every match a single job (and a single run of the EXE) will be created
+  function _generateJobs($input_collection_id)
     {
-    foreach($inputItemIds as $itemId)
-      {
-        
-      }
-          // get an api key for this user
-    $modelLoad = new MIDAS_ModelLoader();
-    $userApiModel = $modelLoad->loadModel('Userapi', 'api');
-    $userApiDao = $userApiModel->getByAppAndUser($webApiApplication,$userDao);
-    if(!$userApiDao)
-      {
-      throw new Zend_Exception('You need to create a web-api key for this user for application: '.$webApiApplication);
-      }
 
-    $configVars .= "Set(cfg_apikey '".$userApiDao->getApikey()."')\n";
-    $configVars .= "Set(cfg_appname 'Default')\n";
-      
-      Create an item or update an existing one if one exists by the uuid passed
-Parameters
-token - Authentication token
-name - The name of the item to create
-description - (Optional) The description of the item
-uuid - (Optional) Uuid of the item. If none is passed, will generate one.
-privacy - (Optional) Default 'Public'.
-parentid - The id of the parent folder
-Return - The item object that was create
-      
-// create the output item
-      $content['title'] = $output_item_stem.'_'.time();
-      $content['firstname'] = array($this->User->getFirstName($this->user_id));
-      $content['lastname'] = array($this->User->getLastName($this->user_id));
-      $content['basehandle'] = $this->getMidasBaseHandle();
- 
-      $configParams = array();
- 
-      $itemid = $this->Item->createItem2($output_collection_id, $this->user_id, $content);
-      if (!$itemid)
+    // generate the jobs for this collection
+    // this means find matches between seedpoints and items
+
+    // map collection's items by name, since that is how the seedpoints ids it
+    $num_items = $this->Collection->getNumberOfItems($input_collection_id);
+    $groups = $this->User->getGroups( $this->user_id );
+    $items_info = $this->Collection->getAllItemsInfo( $input_collection_id, $this->user_id, $groups, 0, $num_items);
+
+    $item_names_to_ids = array();
+    foreach($items_info['items'] as $item_info)
+      {
+      $item_names_to_ids[$item_info['title']] = $item_info['id'];
+      } 
+
+    // create jobs for each match
+    $jobs = array(); 
+
+    // look through seedpoints, creating a job for each match between a seedpoint
+    // and an item in the collection
+    $seedpoints = $this->NistqiLesionSeedpoint->find('all');
+    foreach($seedpoints as $seedpoint)
+      {
+      $seed_data = $seedpoint['NistqiLesionSeedpoint'];
+      $item_name = $seed_data['case_id'];
+      if(array_key_exists($item_name,$item_names_to_ids))
         {
-        KwUtils::Error("Failed to create Item");
-        return false;
+        $job = array();
+        $job['case_id'] = $item_name;
+        $job['item_id'] = $item_names_to_ids[$item_name];
+        $job['lesion_uid'] = $seed_data['lesion_uid'];
+        $job['lesion_uid'] = $seed_data['lesion_uid'];
+        $job['seed'] = "3 " . $seed_data['seed_x'] . ' ' . $seed_data['seed_y'] . ' ' . $seed_data['seed_z'];
+        $job['bounding_box'] = "6 " . $seed_data['bounding_box_x0'] . ' ' . $seed_data['bounding_box_x1'] . ' ' . $seed_data['bounding_box_y0'] . ' ' . $seed_data['bounding_box_y1'] . ' ' . $seed_data['bounding_box_z0'] . ' ' . $seed_data['bounding_box_z1'];
+        if(!$seed_data['is_in_physical_space']) $job['physical_space'] = '0';
+        else $job['physical_space'] = '1';
+        $job['output_stem'] = 'lstk' . '_' . $item_name . '_' . $seed_data['lesion_uid'] . '_V_lstk';
+        $jobs[] = $job;
         }
-      else
+      }
+    
+    return $jobs;
+    }
+*/
+    
+    
+  protected function generateJobs($inputFolderId, $userDao)
+    {
+    $modelLoad = new MIDAS_ModelLoader();
+    $lesionseedpointModel = $modelLoad->loadModel('Lesionseedpoint', 'qibench');
+    $seedpointDaos = $lesionseedpointModel->getAll();
+    //echo "seedpoints:";
+    //var_dump($seedpointDaos);
+    $modelLoad = new MIDAS_ModelLoader();
+    $folderModel = $modelLoad->loadModel('Folder');
+    $folderDao = $folderModel->load($inputFolderId);
+    $items = $folderModel->getItemsFiltered($folderDao, $userDao);
+    //echo "items";
+    //var_dump($items);
+    // HACK a hacky join
+    $jobs = array();
+    $jobsItems = array();
+    foreach($seedpointDaos as $seedpointDao)
+      {
+      $caseId = $seedpointDao->getCaseId();
+      foreach($items as $itemDao)
         {
-        $itemidArray = array('type' => 'Integer', 'name' => 'cfg_itemid', 'value' => $itemid);
-        $configParams['cfg_itemid'] = $itemidArray;
-        }
- 
-      $email = $this->User->getEmail($this->user_id);
-      if (!$email)
-        {
-        KwUtils::Error("Problem with user email");
-        return false;
-        }
-      else
-        {
-        $emailArray = array('type' => 'String', 'name' => 'cfg_email', 'value' => $email);
-        $configParams['cfg_email'] = $emailArray;
-        }
- 
-      $applicationName = 'Default';
-      $apikeysids = $this->Api->getUserKeys($this->user_id);
-      $apikey = false;
-      foreach($apikeysids as $apikeysid)
-        {
-        $apiKeyApplication = $this->Api->getApplicationName($apikeysid);
-        if ($apiKeyApplication == $applicationName)
+        $itemName = $itemDao->getName();
+        if($itemName === $caseId)
           {
-          $apikey = $this->Api->getKey($apikeysid);
-          break;
+          $jobsItems[$seedpointDao->getKey()] = $itemDao;
+          $jobs[$seedpointDao->getKey()] = $seedpointDao;
           }
         }
-      if (!$apikey)
-        {
-        KwUtils::Error("Problem with API Key");
-        return false;
-        }
-      else
-        {
-        $apikeyArray = array();
-        $apikeyArray['type'] = 'String';
-        $apikeyArray['name'] = 'cfg_apikey';
-        $apikeyArray['value'] = $apikey;
-        $configParams['cfg_apikey'] = $apikeyArray;
- 
-        $appnameArray = array();
-        $appnameArray['type'] = 'String';
-        $appnameArray['name'] = 'cfg_appname';
-        $appnameArray['value'] = $applicationName;
-        $configParams['cfg_appname'] = $appnameArray;
-        }
-  
-      include("config/config.php");
-      if(!isset($MIDAS_SERVER_NAME) || $MIDAS_SERVER_NAME == "")
-        {
-        $baseURL = "http://localhost" . $this->webroot;
-        }
-      else
-        {
-        // TODO check the format of $MIDAS_SERVER_NAME
-        $baseURL = 'http://' . $MIDAS_SERVER_NAME . $this->webroot;
-        }
-      $condorCallBackScript = ROOT . '/vendors/kwcondormidasbitstreamuploader.php';
- 
-      // create additional config params for the Midas web root and condor call back script
-      $midasBaseURLArray = array('type'=>'String','name'=>'cfg_midas_baseURL','value'=>$baseURL);
-      $configParams['cfg_midas_baseURL'] = $midasBaseURLArray;
- 
-      $condorCallBackScriptArray = array('type'=>'String','name'=>'cfg_condorpostscript','value'=>$condorCallBackScript);
-      $configParams['cfg_condorpostscript'] = $condorCallBackScriptArray;
- 
-      // we need to execute the callback script using PHP
-      $condorPhpExeArray = array('type'=>'String','name'=>'cfg_php_exe','value'=> $this->php_exe);
-      $configParams['cfg_php_exe'] = $condorPhpExeArray;
- 
-      $tmpDirArray = array('type'=>'String','name'=>'cfg_output_directory','value'=>$tmp_dir);
-      $configParams['cfg_output_directory'] = $tmpDirArray;
-       
-      $collectionDirArray = array('type' => 'String', 'name' => 'cfg_collection_dir', 'value' => $input_collection_dir);
-      $configParams['cfg_collection_dir'] = $collectionDirArray;
- 
-      return $configParams;
       }
+    return array($jobs, $jobsItems);
+    //echo "jobs:";
+    //var_dump($jobs);
+
+     
+    }
+    //$outputFolderId, $outputItemStem, $taskDao, $inputFolderId, $inputItemIds, $userDao);
+      
+    
+    
+  protected function generatePythonConfigParams($taskDao, $userDao)
+    {
+    // generate an config file for this run
+    // HARDCODED
+    $configs = array();
+    $configs[] = 'url http://localhost/midas3';
+    $configs[] = 'appname Default';
+    
+    $email = $userDao->getEmail();
+    // get an api key for this user
+    $modelLoad = new MIDAS_ModelLoader();
+    $userApiModel = $modelLoad->loadModel('Userapi', 'api');
+    $userApiDao = $userApiModel->getByAppAndUser('Default', $userDao);
+    if(!$userApiDao)
+      {
+      throw new Zend_Exception('You need to create a web-api key for this user for application: Default');
+      }
+    $configs[] = 'email '.$email;
+    $configs[] = 'apikey '.$userApiDao->getApikey();
+    $filepath = $taskDao->getWorkDir() . '/' . 'config.cfg';
+    //echo $filepath;
+    
+    if(!file_put_contents($filepath, implode("\n",$configs)))
+      {
+      throw new Zend_Exception('Unable to write configuration file: '.$filepath);
+      }
+    }
   
+  protected function generateBatchmakeConfig($taskDao, $datapath, $jobs, $jobsItems, $outputFolderId)
+    {
+    echo "generateBatchmakeConfig[$datapath]";
+    $jobConfigParams = array();
+    
+    $jobConfigParams['cfg_itemNames'] = array();//'type' => 'Integer', 'name' => 'cfg_itemIDs', 'value' => $cfg_itemIDs); 
+    $jobConfigParams['cfg_itemIDs'] = array();//'type' => 'Integer', 'name' => 'cfg_itemIDs', 'value' => $cfg_itemIDs); 
+    $jobConfigParams['cfg_outputStems'] = array();//'type' => 'String', 'name' => 'cfg_outputStems', 'value' => $cfg_outputStems);
+    $jobConfigParams['cfg_seeds'] = array();
+    $jobConfigParams['cfg_rois'] = array();
+    $jobConfigParams['cfg_usePhysicalSpaces'] = array();
+    $jobConfigParams['cfg_jobInds'] = array();
+    $jobInd = 0;
+    foreach($jobs as $seedpointDao)
+      {
+      $seedpointId = $seedpointDao->getKey();
+      $itemId = $jobsItems[$seedpointId]->getKey();
+      $itemName = $jobsItems[$seedpointId]->getName();
+      $jobConfigParams['cfg_itemNames'][] = $seedpointDao->getCaseId() . '_' . $seedpointDao->getLesionId(); 
+      $jobConfigParams['cfg_itemIDs'][]= $itemId;
+      $jobConfigParams['cfg_outputStems'][] = 'lstk_' . $seedpointDao->getCaseId() . '_' . $seedpointDao->getLesionId() . '_V_lstk';
+      $jobConfigParams['cfg_seeds'][] = "3 " . $seedpointDao->getSeedX() . ' ' . $seedpointDao->getSeedY() . ' ' . $seedpointDao->getSeedZ();
+      $jobConfigParams['cfg_rois'][] = "6 " . $seedpointDao->getBoundingBoxX0() . ' ' . $seedpointDao->getBoundingBoxX1() . ' ' . $seedpointDao->getBoundingBoxY0() . ' ' . $seedpointDao->getBoundingBoxY1() . ' ' . $seedpointDao->getBoundingBoxZ0() . ' ' . $seedpointDao->getBoundingBoxZ1();
+      $jobConfigParams['cfg_usePhysicalSpaces'][] = 1;
+      $jobConfigParams['cfg_jobInds'][] = $jobInd++;
+      }
+      
+    $configFileLines = array();  
+    foreach($jobConfigParams as $jobConfigParamName => $jobConfigParamValues)
+      {
+      $configFileLine = "Set(" . $jobConfigParamName;
+      foreach($jobConfigParamValues as $jobConfigParamValue)
+        {
+        $configFileLine .= " '" . $jobConfigParamValue . "'";  
+        }
+      $configFileLine .= ")";
+      $configFileLines[] = $configFileLine;
+      }
+    $configFileLines[] = "Set(cfg_collection_dir '" . $datapath . "')";
+    $configFileLines[] = "Set(cfg_output_directory '" . $taskDao->getWorkDir() . "')";
+    $configFileLines[] = "Set(cfg_exe '/usr/bin/python')";
+    $configFileLines[] = "Set(cfg_condorpostscript '" . BASE_PATH . "/modules/qibench/library/qibench_condor_postscript.py')";
+    $configFileLines[] = "Set(cfg_outputFolderID '" . $outputFolderId . "')";
+/*    
+    
+    require_once BASE_PATH.'/modules/batchmake/library/Executor.php';
+          
+          
+    
+    #! /usr/bin/python
+    cfg_exe 
+    ${cfg_condorpostscript} qibench_condor_postscript.py
+    
+      (scriptName, outputDir, outputFolderId, itemName, outputAim, outputImage, outputMesh, exeOutput)
+  */          
+            
+    
+    //var_dump($jobConfigParams);
+    $configFilePath = $taskDao->getWorkDir() . "/LesionSegmentationQIBench.config.bms";
+    echo "configFilePath[$configFilePath]";
+    if(!file_put_contents($configFilePath, implode("\n", $configFileLines)))
+      {
+      throw new Zend_Exception('Unable to write configuration file: '.$configFilePath);
+      }
+    
+    
+    
+    
+    
+    
+    /*
+    Set(cfg_itemIDs '39' '39' '39' '39')
+Set(cfg_outputStems 'lstk_39_4_V_lstk' 'lstk_39_10_V_lstk' 'lstk_39_41_V_lstk' 'lstk_39_43_V_lstk')
+Set(cfg_seeds '3 129.4 256.22 136.01' '3 118.37 224.71 62' '3 142.16 264.98 73.6' '3 116.05 246.89 131.61')
+Set(cfg_rois '6 109.4 149.4 236.22 276.22 116.01 156.01' '6 78.37 158.37 184.71 264.71 22 102' '6 122.16 162.16 244.98 284.98 53.6 93.6' '6 76.05 156.05 206.89 286.89 91.61 171.61') 
+Set(cfg_usePhysicalSpaces '1' '1' '1' '1')
+Set(cfg_jobInds '0' '1' '2' '3')
+Set(cfg_outputfolderid '223')
+Set(cfg_email 'michael.grauer@kitware.com')
+Set(cfg_apikey 'E0O6TVvz1xzueMvciZv8tU2XqSoKePuJG8FqT1PL')
+Set(cfg_appname 'Default')
+Set(cfg_collection_dir '/home/mgrauer/dev/buckler_nist/')
+Set(cfg_output_directory '/home/mgrauer/dev/buckler_nist/39out/')
+    */
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//    exit();
+    }
+    
+    /*
+    // will generate config params for batchmake execution specific to the jobs
+    // that will be run, iterates over a set of jobs and sets up
+    // the necessary batchmake params
+    function _generateJobsConfigParams($jobs)
+      {
+      $jobConfigParams = array();
+
+      $cfg_itemIDs = array();
+      $cfg_outputStems = array();
+      $cfg_seeds = array();
+      $cfg_rois = array();
+      $cfg_usePhysicalSpaces = array();
+
+      $count = 0;
+      foreach($jobs as $job)
+        {
+        $cfg_itemIDs[] = $job['item_id'];
+        $cfg_outputStems[] = $job['output_stem'];
+        $cfg_seeds[] = $job['seed'];
+        $cfg_rois[] = $job['bounding_box'];
+        $cfg_usePhysicalSpaces[] = $job['physical_space'];
+        $count = $count +1;
+        // if DBG_limit_count is set, this will limit how many jobs are actually run
+        if($this->DBG_limit_count && $count >= $this->DBG_limit_count) break;
+        }
+
+      $jobConfigParams['cfg_itemIDs'] = array('type' => 'Integer', 'name' => 'cfg_itemIDs', 'value' => $cfg_itemIDs); 
+      $jobConfigParams['cfg_outputStems'] = array('type' => 'String', 'name' => 'cfg_outputStems', 'value' => $cfg_outputStems);
+      $jobConfigParams['cfg_seeds'] = array('type' => 'String', 'name' => 'cfg_seeds', 'value' => $cfg_seeds);
+      $jobConfigParams['cfg_rois'] = array('type' => 'String', 'name' => 'cfg_rois', 'value' => $cfg_rois);
+      $jobConfigParams['cfg_usePhysicalSpaces'] = array('type' => 'String', 'name' => 'cfg_usePhysicalSpaces', 'value' => $cfg_usePhysicalSpaces);
+
+      // HACK this is slightly distasteful, need to add in a variable which is
+      // a list of indices, one for each job.  
+      // Though it is not nearly as gross as an earlier solution of directly
+      // appending to the batchmake config file:
+      // "Sequence(cfg_jobInds 0 ". count($jobs)-1 ." 1)\n"
+      $jobConfigParams['cfg_jobInds'] = array('type' => 'Integer', 'name' => 'cfg_jobInds', 'value' => range(0,count($cfg_itemIDs)-1,1));
+      
+      return $jobConfigParams;
+      }    
+    */
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
   public function runDemo($userDao)
     {
-    echo "runDemo";
+    //echo "runDemo";
     
     // for now hard code all the ids
 
     // the collection to run over
     //$pivotal_id = 6;
 
-    $inputFolderId = 0; // TODO  HACK HARDCODE
+    $inputFolderId = 237; // TODO  HACK HARDCODE
     // the output folder
-    $outputFolderId = 223; // TODO HACK HARDCODE
-echo "outputFolder [$outputFolderId]";
+    $outputFolderId = 242; // TODO HACK HARDCODE
+    //echo "outputFolder [$outputFolderId]";
     //$output_item_stem = 'Pivotal_LesionSegmentationNistQIBench';
     //$input_collection_id = $pivotal_id;
 
     $componentLoader = new MIDAS_ComponentLoader();
     $kwbatchmakeComponent = $componentLoader->loadComponent('KWBatchmake', 'batchmake');
     $taskDao = $kwbatchmakeComponent->createTask($userDao);
+    //var_dump($taskDao);
+    //exit();
     
     // TODO do data export
     // HACK for now hardcode
@@ -292,8 +329,63 @@ echo "outputFolder [$outputFolderId]";
     // get a list of input item dirs
     $itemDirs = array("/home/mgrauer/dev/buckler_nist/39");
     
+    $outputItemStem = "qibench";
+    $this->generatePythonConfigParams($taskDao, $userDao);
+    list($jobs, $jobsItems) = $this->generateJobs($inputFolderId, $userDao);//
 
-    $configParams = $this->generateConfigParams($outputFolderId, $outputItemStem, $taskDao, $inputFolderId, $inputItemIds, $userDao);//, $$output_collection_id,$output_item_stem,$tmp_dir,$input_collection_dir);
+    // export the items to the work dir data dir
+    $datapath = $taskDao->getWorkDir() . '/' . 'data';
+    //echo "datapath[$datapath]";
+    if(!KWUtils::mkDir($datapath))
+      {
+      throw new Zend_Exception("couldn't create data export dir: ". $datapath);  
+      }
+    $exportComponent = $componentLoader->loadComponent('Export');
+    $jobsItemsIds = array();
+    foreach($jobsItems as $jobItemDao)
+      {
+      $jobsItemsIds[] = $jobItemDao->getKey();  
+      }
+//echo "jobsItemsIds";
+//exit();    
+//var_dump($jobsItemsIds);
+    $exportComponent->exportBitstreams($userDao, $datapath, $jobsItemsIds, true);
+    // need a mapping of item name to item id
+    $this->generateBatchmakeConfig($taskDao, $datapath, $jobs, $jobsItems, $outputFolderId);
+ 
+    $bmScript = "LesionSegmentationQIBench.bms";
+    $kwbatchmakeComponent->preparePipelineScripts($taskDao->getWorkDir(), $bmScript);
+echo "prepare1";
+    $kwbatchmakeComponent->preparePipelineBmms($taskDao->getWorkDir(), array($bmScript));
+echo "prepare2";
+    $kwbatchmakeComponent->compileBatchMakeScript($taskDao->getWorkDir(), $bmScript);
+echo "compile";
+    $dagScript = $kwbatchmakeComponent->generateCondorDag($taskDao->getWorkDir(), $bmScript);
+echo "generateDag[$dagScript]";
+    $kwbatchmakeComponent->condorSubmitDag($taskDao->getWorkDir(), $dagScript);
+echo "submitted";
+    exit();
+
+//     public function generateCondorDag($workDir, $bmScript)
+//              public function condorSubmitDag($workDir, $dagScript)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//$outputFolderId, $outputItemStem, $taskDao, $inputFolderId, $inputItemIds, $userDao);
+    
+//
+    ////, $$output_collection_id,$output_item_stem,$tmp_dir,$input_collection_dir);
+//    $configParams = $this->generateConfigParams($outputFolderId, $outputItemStem, $taskDao, $inputFolderId, $inputItemIds, $userDao);//, $$output_collection_id,$output_item_stem,$tmp_dir,$input_collection_dir);
 
 
 //     
@@ -415,69 +507,6 @@ nistqi_tracker_id serial PRIMARY KEY,
     
     
     
-    //TODO remove this
-    
-  /**
-   * will parse the passed in array $rows, assuming each $row in
-   * $rows is a string, with column values separated by $separator,
-   * and if there is an initial row of headers that should be set in
-   * $headersIncluded; for each of these $rows, it will parse the
-   * $row, create and then save a LesionseedpointDao.
-   * @param type $headersIncluded
-   * @param type $separator
-   * @param type $rows
-   * @return Qibench_LesionseedpointDao
-   */
-  public function parseAndSave($headersIncluded, $separator, $rows)
-    {
-    $modelLoad = new MIDAS_ModelLoader();
-    $lesionseedpointModel = $modelLoad->loadModel('Lesionseedpoint', 'qibench');
-    $lesionseedpointModel->loadDaoClass('LesionseedpointDao', 'qibench');
-
-    // get all of the column names from the model
-    // discard the primary key column
-    // add these columns to an integer indexed array, used to pull
-    // corresponding column names for column data, based on the column index
-    $mainData = $lesionseedpointModel->getMainData();
-    $mainDataCols = array();
-    $mainDataKey = $lesionseedpointModel->getKey();
-    foreach($mainData as $colName => $val)
-      {
-      if($colName === $mainDataKey)
-        {
-        continue;
-        }
-      else
-        {
-        $mainDataCols[] = $colName;
-        }
-      }
-
-    // loop through rows, create a Dao for each and save it
-    $lesionseedpointDaos = array();
-    foreach($rows as $ind => $row)
-      {
-      if($ind === 0 && $headersIncluded)
-        {
-        continue;
-        }
-      else
-        {
-        // parse the row
-        $cols = explode($separator, $row);
-        $lesionseedpointDao = new Qibench_LesionseedpointDao();
-        foreach($cols as $ind => $col)
-          {
-          // get the column name for this column datum
-          $mainDataCol = $mainDataCols[$ind];
-          $lesionseedpointDao->set($mainDataCol, $col);
-          }
-        $lesionseedpointModel->save($lesionseedpointDao);
-        $lesionseedpointDaos[] = $lesionseedpointDao;
-        }
-      }
-    return $lesionseedpointDaos;
-    }
 
 
 
