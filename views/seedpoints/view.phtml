@@ -43,30 +43,11 @@ $this->headScript()->appendFile($this->moduleWebroot.'/public/js/jquery.dataTabl
 <?php
 echo '<tr class="header_row">';
 
-$tableHeaders = array(
-  'nistqi_lesion_seedpoints_id' => 'id',
-  'case_id' => 'case id',
-  'lesion_id' => 'lesion id',
-  'seed_x' => 'seed x',
-  'seed_y' => 'seed y',
-  'seed_z' => 'seed z',
-  'bounding_box_x0' => 'x0',
-  'bounding_box_x1' => 'x1',
-  'bounding_box_y0' => 'y0',
-  'bounding_box_y1' => 'y1',
-  'bounding_box_z0' => 'z0',
-  'bounding_box_z1' => 'z1',
-  'is_in_physical_space' => 'physical space');
 
 
-$excludedCols = array(
-  'nistqi_lesion_seedpoints_id' => 'nistqi_lesion_seedpoints_id',
-  'is_in_physical_space' => 'is_in_physical_space');
-
-
-foreach($tableHeaders as $dbCol => $tableHeader)
+foreach($this->tableHeaders as $dbCol => $tableHeader)
   {
-  if(array_search($dbCol,$excludedCols)) continue;
+  //if(array_search($dbCol,$excludedCols)) continue;
   echo '<th>'.$tableHeader.'</th>';
   }
 ?>
@@ -74,14 +55,14 @@ foreach($tableHeaders as $dbCol => $tableHeader)
 </thead>
 <tbody>
 <?php
-foreach($this->seedpointDaos as $ind=>$seedpointDao)
+foreach($this->tableData as $row)
   {
   echo '<tr>';
 //  $seedpointDao = $seedpoint['NistqiLesionSeedpoint'];
-  foreach($tableHeaders as $dbCol => $tableHeader)
+  foreach($row as $col)
     {
-    if(array_search($dbCol,$excludedCols)) continue;
-    echo '<td><div>'.$seedpointDao->get($dbCol).'</div></td>';
+    //if(array_search($dbCol,$excludedCols)) continue;
+    echo '<td><div>'.$col.'</div></td>';
     }
   
   echo "</tr>";
