@@ -54,14 +54,17 @@ class Qibench_ApiComponent extends AppComponent
       {
       throw new Exception('Anonymous users may not add runitemscaluevalue-s');
       }
-
     $qibenchrunitemid = $args['qibenchrunitemid'];
     $name = $args['name'];
     $value = $args['value'];
 
+
     $modelLoader = new MIDAS_ModelLoader();
     $runitemModel = $modelLoader->loadModel('RunItem','qibench');
-    $runitem = $runitemModel->load($qibenchrunitemid);
+//var_dump($runitemModel); //exit;
+    //$runitem = $runitemModel->load($qibenchrunitemid);
+    $runitemDaos = $runitemModel->findBy('qibench_run_item_id',$qibenchrunitemid);
+    $runitem = $runitemDaos[0];//qibench_run_item_id
     // HACK SOME CHECKING FOR ITEM VALUE
     $runitemscalarvalueModel = $modelLoader->loadModel('RunItemScalarvalue','qibench');
     $runitemscalarvalueModel->loadDaoClass('RunItemScalarvalueDao', 'qibench');
@@ -72,7 +75,45 @@ class Qibench_ApiComponent extends AppComponent
     $runitemscalarvalueModel->save($runitemscalarvalueDao);
     return $runitemscalarvalueDao;
     }
+    
+  /**
+   * set the outputItemId on a QibenchRunItem
+   * @param qibenchrunitemid 
+   * @param outputitemid 
+   * @return The QibenchRunItemDao
+   */
+  function runitemOutputitemidSet($args)
+    {
+    $this->_validateParams($args, array('qibenchrunitemid', 'outputitemid'));
+    $userDao = $this->_getUser($args);
+    if(!$userDao)
+      {
+      throw new Exception('Anonymous users may not set runitemOutputitemid-s');
+      }
 
+    $qibenchrunitemid = $args['qibenchrunitemid'];
+    $outputitemid = $args['outputitemid'];
+//echo "qi[$qibenchrunitemid]";exit();
+    $modelLoader = new MIDAS_ModelLoader();
+    $runitemModel = $modelLoader->loadModel('RunItem','qibench');
+    $runitemModel->loadDaoClass('RunItemDao', 'qibench');
+
+    $runitemDaos = $runitemModel->findBy('qibench_run_item_id',$qibenchrunitemid);
+    $runitemDao = $runitemDaos[0];//qibench_run_item_id
+  //  $runitemDao = $runitemModel->load($qibenchrunitemid);
+//var_dump($runitemDao); 
+//echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";var_dump($runitemModel); 
+    // HACK SOME CHECKING FOR ITEM VALUE
+    $runitemDao->setOutputItemId($outputitemid);
+  //echo "just set"; exit();
+    $runitemModel->save($runitemDao);
+   //echo "justsaved";exit(); 
+//echo "here";exit();
+    return $runitemDao;
+    }
+    
+    
+    
 
 } // end class
 

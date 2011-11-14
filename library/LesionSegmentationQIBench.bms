@@ -10,6 +10,7 @@ ForEach(jobInd ${cfg_jobInds})
   GetParam(seed ${cfg_seeds} ${jobInd})
   GetParam(roi ${cfg_rois} ${jobInd})
   GetParam(usePhysicalSpace ${cfg_usePhysicalSpaces} ${jobInd})
+  GetParam(runItemID ${cfg_runItemIDs} ${jobInd})
 
   # define the output filenames
   Set(outputImage ${outputStem}.mha)
@@ -26,7 +27,7 @@ ForEach(jobInd ${cfg_jobInds})
   SetAppOption(seg.ROI.ROI ${roi})
   SetAppOption(seg.UsePhysicalSpace.UsePhysicalSpace ${usePhysicalSpace})
   SetAppOption(seg.OffsetFromOrigin.OffsetFromOrigin 1)
-  CondorPostScript(seg ${cfg_exe} ${cfg_condorpostscript} ${cfg_output_directory} ${cfg_outputFolderID} ${itemName} ${outputAIM} ${outputImage} ${outputMesh})
+  CondorPostScript(seg ${cfg_exe} ${cfg_condorpostscript} ${cfg_output_directory} ${cfg_runID} ${cfg_outputFolderID} ${runItemID} ${itemName} ${outputAIM} ${outputImage} ${outputMesh})
   Run(output ${seg})
 
 

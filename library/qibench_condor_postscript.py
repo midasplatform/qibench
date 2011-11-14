@@ -21,7 +21,7 @@ def loadConfig(filename):
        x = x.strip()
        if not x: continue
        cols = x.split()
-       print cols
+       #print cols
        ret[cols[0]] = cols[1]
      return ret
    except Exception, e: raise
@@ -30,6 +30,8 @@ def loadConfig(filename):
 
 
 def parseVolumeMeasurement(filepath):
+  if not os.path.exists(filepath):
+    return None
   lines = open(filepath, 'r')
   volume = "n/a"
   #  pattern = re.compile("Volume of segmentation (mm^3) = 465.686
@@ -44,52 +46,90 @@ def parseVolumeMeasurement(filepath):
 
 def addRunItemScalarvalue(communicator, token, qibenchrunitemid, name, value):
     """
-    Gets the default api key given an email and password
+    Adds a scalar value to the runitem
     """
     parameters = dict()
     parameters['token'] = token
     parameters['qibenchrunitemid'] = qibenchrunitemid
     parameters['name'] = name
     parameters['value'] = value
-    print parameters
+    #print parameters
     response = communicator.makeRequest('midas.qibench.runitemscalarvalue.add', parameters)
     return response
 
+
+
+def setRunItemOutputItemId(communicator, token, qibenchrunitemid, outputItemId):
+    """
+    Sets the outputItemId on the runitem
+    """
+    parameters = dict()
+    parameters['token'] = token
+    parameters['qibenchrunitemid'] = qibenchrunitemid
+    parameters['outputitemid'] = outputItemId
+    print parameters
+    response = communicator.makeRequest('midas.qibench.runitem.outputitemid.set', parameters)
+    return response
+
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
-  (scriptName, outputDir, outputFolderId, itemName, outputAim, outputImage, outputMesh, jobname, jobid, returncode) = sys.argv
-  #python qibench_condor_postscript.py /home/mgrauer/dev/buckler_nist/39out 229 39_4 lstk_39_4_V_lstk.xml lstk_39_4_V_lstk.mha lstk_39_4_V_lstk.stl bmGrid.1.out.txt
-  #Set directory location
-#itemname, outputaim, outputimage, outputmesh, jobname, condorjobid
-
-#jfrom jobname, can parse jobX where x is id, then from that can parse out image volume
-
-
-  #os.chdir(sys.path[0])
-  #outfile = open('myout.txt','w')
-  #outfile.write('\n'.join(sys.argv))
-  #outfile.close()
-  #exit()
-
- 
+  (scriptName, outputDir, runId, outputFolderId, runItemId, itemName, outputAim, outputImage, outputMesh, jobname, jobid, returncode) = sys.argv
+  jobidNum = jobname[3:]
   cfgParams = loadConfig('config.cfg')
-  #print cfgParams
-  
+
+  log = open(os.path.join(outputDir,'postscript'+jobidNum+'.log'),'w')
+  log.write('Condor Post Script log\n\nsys.argv:\n\n')
+  log.write('\t'.join(sys.argv))
+
+  log.write('\n\nConfig Params:\n\n')
+  log.write('\n'.join(['\t'.join((k,v)) for (k,v) in cfgParams.iteritems()])) 
+
+
   interfaceMidas = apiMidas.Communicator (cfgParams['url'])
   token = interfaceMidas.loginWithApiKey(cfgParams['email'], cfgParams['apikey'], application='Default')
+  log.write("\n\nLogged into midas, got token: "+token+"\n\n")
 
-  jobidNum = jobname[3:]
   exeOutput = 'bmGrid.' + jobidNum + '.out.txt' 
-  print exeOutput
+  exeOutputPath = os.path.join(outputDir, exeOutput)
+  log.write("\n\nParsing output file: "+exeOutputPath+"\n\n")
+  volume = parseVolumeMeasurement(exeOutputPath)
+  log.write("\n\nvolume from output file:"+volume+"\n\n")
+  
+
+  response = addRunItemScalarvalue(interfaceMidas, token, runItemId, 'CaseReading', volume)
+  log.write("\n\nCalled addRunItemScalarvalue("+runItemId+", "+"CaseReading"+", "+volume+") with response:"+str(response)+"\n\n")
+
+  # create the item
+  item = interfaceMidas.createItem(token, itemName, outputFolderId, 'pydas created')
+  itemId = item['item_id']
+  log.write("\n\nCalled createItem, got itemId:"+str(itemId)+"\n\n")
+  
+
+
+  #itemId = 190 # hardcode for now
+  # set the outputitemid in the runitem
+  response = setRunItemOutputItemId(interfaceMidas, token, runItemId, itemId)
+  log.write("\n\nCalled setRunItemOutputItemId with response:"+str(response)+"\n\n")
+
+
+ 
+  #print cfgParams
+  
+
   #exit()
   #bmGrid.1.out.txt
-  volume = parseVolumeMeasurement(outputDir + '/' + exeOutput)
-  print volume
   # HACK need some error handling if no file
   # also look at returncode value
  
 
   #exit()
-  #addRunItemScalarvalue(interfaceMidas, token, 1, 'CaseReading', volume)
   #exit()
   #qibench_run_item_id 
 
@@ -97,14 +137,15 @@ if __name__ == "__main__":
  
   # also get the revision and set to head
 
-  # create the item
-  item = interfaceMidas.createItem(token, itemName, outputFolderId, 'pydas created')
-  itemId = item['item_id']
-  #itemId = 190 # hardcode for now
   # upload the bitstreams to the item
   for filename in [outputAim, outputImage, outputMesh]:
     filePath = outputDir + '/' + filename
     uploadToken = interfaceMidas.generateUploadToken(token, itemId, filename)
+    log.write("\n\nGot uploadToken:"+str(uploadToken)+" for filename "+filename+"\n\n")
     length = os.path.getsize(filePath)
-    print uploadToken
+    #print uploadToken
     uploadResponse = interfaceMidas.performUpload(uploadToken['token'], filename, length, filePath, None, None, itemId, 'head')
+    log.write("\n\nGot uploadResponse:"+str(uploadResponse)+" for filename "+filename+"\n\n")
+  
+  log.close()
+  exit()#print cfgParamsOut

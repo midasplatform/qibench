@@ -35,36 +35,49 @@ class Qibench_SeedpointsController extends Qibench_AppController {
 
     if($this->_request->isPost())
       {
-        $this->ModuleComponent->Execute->runDemo($this->userSession->Dao);
-    
-        
-/*      $this->_helper->layout->disableLayout();
-      $this->_helper->viewRenderer->setNoRender();
-      $submitConfig = $this->_getParam(MIDAS_BATCHMAKE_SUBMIT_CONFIG);
-
-      if(isset($submitConfig))
+      // for now hard code all the ids
+      $inputFolderId = 14; // TODO  HACK HARDCODE
+      // the output folder
+      $outputFolderId = 15; // TODO HACK HARDCODE
+      $jobConfigParams = $this->ModuleComponent->Execute->runDemo($this->userSession->Dao, $inputFolderId, $outputFolderId);
+ 
+      // transpose the jobsConfigParams to display output table rows
+      $outputTable = array();
+      $numJobs = sizeof($jobConfigParams['cfg_itemNames']);
+      for($i = 0; $i < $numJobs; $i++)
         {
-        // user wants to save config
-        $this->archiveOldModuleLocal();
-        // save only those properties we are interested for local configuration
-        foreach($configPropertiesRequirements as $configProperty => $configPropertyRequirement)
-          {
-          $fullConfig[MIDAS_BATCHMAKE_GLOBAL_CONFIG_NAME][$this->moduleName.'.'.$configProperty] = $this->_getParam($configProperty);
-          }
-        $this->Component->Utility->createInitFile(MIDAS_BATCHMAKE_MODULE_LOCAL_CONFIG, $fullConfig);
-        $msg = $this->t(MIDAS_BATCHMAKE_CHANGES_SAVED_STRING);
-        echo JsonComponent::encode(array(true, $msg));
+        $row = array();
+        $itemName = $jobConfigParams['cfg_itemNames'][$i];
+        $itemNameParts = explode('_', $itemName);
+        $caseId = $itemNameParts[0];
+        $lesionId = $itemNameParts[1];
+        $row[] = $caseId;
+        $row[] = $lesionId;
+        $row[] = 'lstk';
+        // input item
+        $row[] = $jobConfigParams['cfg_itemIDs'][$i];
+        // output item
+        $row[] = 'output item';
+        // ???
+        $row[] = $jobConfigParams['cfg_runItemIDs'][$i];
+        // volume
+        $row[] = 'volume read-out';
+        $outputTable[] = $row;
         }
-*/
+      $this->view->header = $this->t("Case Reading Results");
+      $this->view->outputRows = $outputTable;
+    
+      
+      $this->_redirect('/qibench/seedpoints/execute');
+      //echo "here";
+      //exit();
+      
+      
+      
+      
+      
       }
-   /* else
-      {
-      // populate seedpoints form with values
-      $seedpointsForm = $this->ModuleForm->Seedpoints->createSeedpointsForm();
-      $formArray = $this->getFormAsArray($seedpointsForm);
-      $this->view->seedpointsForm = $formArray;
-      }
-*/
+      
     }
   
   /** view seedpoints action */
@@ -72,7 +85,7 @@ class Qibench_SeedpointsController extends Qibench_AppController {
     {
     
     // test code to load test data
-    //$filepath = '/home/mgrauer/dev/buckler_nist/bm/lesionseedpoints.txt';
+    //$filepath = BASE_PATH . '/modules/qibench/tests/testfiles/lesionseedpoints.txt';
     //$contents = file($filepath, FILE_IGNORE_NEW_LINES);
     //$lesionseedpointDaos = $this->ModuleComponent->LesionseedpointCSV->parseAndSave(false, ',', $contents);
  

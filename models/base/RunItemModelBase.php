@@ -20,6 +20,7 @@ abstract class Qibench_RunItemModelBase extends Qibench_AppModel {
     parent::__construct();
     $this->_name = 'qibench_run_item';
     $this->_key = 'qibench_run_item_id';
+    //$this->_daoName = 'Qibench_RunItemDao';
     $this->_daoName = 'RunItemDao';
     $this->_mainData = array(
       'qibench_run_item_id' => array('type' => MIDAS_DATA),

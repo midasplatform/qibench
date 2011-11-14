@@ -29,9 +29,18 @@ class Qibench_SeedpointsForm extends AppForm
 
     $formElements = array();
 
-    $submit = new  Zend_Form_Element_Submit("submitExecute");
-    $submit ->setLabel($this->t("execute"));
-    $formElements[] = $submit;
+    $submitExecute = new  Zend_Form_Element_Submit("submitExecute");
+    $submitExecute ->setLabel($this->t("execute"));
+    $formElements[] = $submitExecute;
+
+    $textElement = new Zend_Form_Element_Text('seepointsFileItemId');
+    $formElements[] = $textElement;
+
+    $submitLoad = new  Zend_Form_Element_Submit("submitLoad");
+    $submitLoad ->setLabel($this->t("Load from Item ID:"));
+    $formElements[] = $submitLoad;
+    
+    
 
 
     $form->addElements($formElements);
