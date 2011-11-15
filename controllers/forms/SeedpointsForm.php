@@ -24,7 +24,7 @@ class Qibench_SeedpointsForm extends AppForm
     {
     $form = new Zend_Form;
 
-    $form->setAction($this->webroot.'/qibench/seedpoints/execute')
+    $form->setAction($this->webroot.'/qibench/seedpoints/view')
           ->setMethod('post');
 
     $formElements = array();

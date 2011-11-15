@@ -183,6 +183,8 @@ class Qibench_ExecuteComponent extends AppComponent
       $runItemDao = new Qibench_RunItemDao();
       $runItemDao->setQibenchRunId($runId);
       $runItemDao->setInputItemId($itemId);
+      $runItemDao->setCaseId($seedpointDao->getCaseId());
+      $runItemDao->setLesionId($seedpointDao->getLesionId());
       // HACK need to set outputItemId somewhere
       $runItemModel->save($runItemDao);
       $jobConfigParams['cfg_runItemIDs'][] = $runItemDao->getKey();
@@ -218,19 +220,6 @@ class Qibench_ExecuteComponent extends AppComponent
     
   public function runDemo($userDao, $inputFolderId, $outputFolderId)
     {
-    //echo "runDemo";
-    
-    // for now hard code all the ids
-
-    // the collection to run over
-    //$pivotal_id = 6;
-
-   // $inputFolderId = 14; // TODO  HACK HARDCODE
-    // the output folder
-  // $outputFolderId = 15; // TODO HACK HARDCODE
-    //echo "outputFolder [$outputFolderId]";
-    //$output_item_stem = 'Pivotal_LesionSegmentationNistQIBench';
-    //$input_collection_id = $pivotal_id;
 
     $componentLoader = new MIDAS_ComponentLoader();
     $kwbatchmakeComponent = $componentLoader->loadComponent('KWBatchmake', 'batchmake');
@@ -245,8 +234,8 @@ class Qibench_ExecuteComponent extends AppComponent
     $runDao->setBatchmakeTaskId($taskDao->getBatchmakeTaskId());
     $runDao->setInputFolderId($inputFolderId);
     $runDao->setOutputFolderId($outputFolderId);
+    $runDao->setExecutableName('lstk');
     $runModel->save($runDao);
-    
     // now that we have created a run, create a new folder for this run under
     // the outputFolder
     $folderModel = $modelLoad->loadModel('Folder');
@@ -262,7 +251,7 @@ class Qibench_ExecuteComponent extends AppComponent
     $outputItemStem = "qibench";
     $this->generatePythonConfigParams($taskDao, $userDao);
     list($jobs, $jobsItems) = $this->generateJobs($inputFolderId, $userDao);//
-
+ 
     // export the items to the work dir data dir
     $datapath = $taskDao->getWorkDir() . '/' . 'data';
     //echo "datapath[$datapath]";
@@ -271,12 +260,16 @@ class Qibench_ExecuteComponent extends AppComponent
       throw new Zend_Exception("couldn't create data export dir: ". $datapath);  
       }
     $exportComponent = $componentLoader->loadComponent('Export');
+ 
+    
     $jobsItemsIds = array();
     foreach($jobsItems as $jobItemDao)
       {
       $jobsItemsIds[] = $jobItemDao->getKey();  
       }
     $exportComponent->exportBitstreams($userDao, $datapath, $jobsItemsIds, true);
+
+  
     // need a mapping of item name to item id
     $jobConfigParams = $this->generateBatchmakeConfig($taskDao, $runDao, $datapath, $jobs, $jobsItems, $outputFolderId);
 
@@ -286,28 +279,19 @@ class Qibench_ExecuteComponent extends AppComponent
     
     $kwbatchmakeComponent->preparePipelineBmms($taskDao->getWorkDir(), array($bmScript));
 
-    //echo $taskDao->getWorkDir(); exit();
-//    $kwbatchmakeComponent->compileBatchMakeScript($taskDao->getWorkDir(), $bmScript);
-
+    //$kwbatchmakeComponent->compileBatchMakeScript($taskDao->getWorkDir(), $bmScript);
     $dagScript = $kwbatchmakeComponent->generateCondorDag($taskDao->getWorkDir(), $bmScript);
-
-//    $kwbatchmakeComponent->condorSubmitDag($taskDao->getWorkDir(), $dagScript);
-    //echo "submitted";exit();
-    /*    
+    $kwbatchmakeComponent->condorSubmitDag($taskDao->getWorkDir(), $dagScript);
     
-//echo "prepare1";
-    $this->getLogger()->crit('prepare1');
-//echo "prepare2";
-    $this->getLogger()->crit('prepare2');
-//echo "compile";
-        $this->getLogger()->crit('compile');
+    /*
+//when i uncomment either of these two lines, even though they work, the
+//view breaks
 
-//echo "generateDag[$dagScript]";
-//echo "submitted";
-        $this->getLogger()->crit('submitted');
+
+// this line is commented out just to not take so much time/cpu, it submits to condor
+         //$kwbatchmakeComponent->condorSubmitDag($taskDao->getWorkDir(), $dagScript);
 */
-    return $jobConfigParams;
-  
+    return array($runDao, $jobConfigParams);
     }
     
     
