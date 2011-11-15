@@ -13,27 +13,12 @@ PURPOSE.  See the above copyright notices for more information.
 $this->headScript()->appendFile($this->coreWebroot . '/public/js/jquery/jquery.form.js');
 $this->headScript()->appendFile($this->apiWebroot.'/public/js/common/common.ajaxapi.js');
 $this->headScript()->appendFile($this->moduleWebroot.'/public/js/jquery.dataTables.js');
+$this->headScript()->appendFile($this->moduleWebroot.'/public/js/qibench.seedpoints.js');
 ?>
 <link type="text/css" rel="stylesheet" href="<?php echo $this->coreWebroot?>/public/css/common/common.genericPage.css" />
 <link type="text/css" rel="stylesheet" href="<?php echo $this->moduleWebroot?>/public/css/seedpoints/demo_table.css" />
 <div class="viewMain">
 
-<script type="text/javascript">
-  jQuery(document).ready(function()
-    {
-    jQuery("#seedpoints_table").dataTable(
-      {
-      "sScrollY": "200px",
-      "bFilter": true,
-      "bPaginate": false,
-      "bSort": true,
-      "bInfo": true,
-      "aaSorting": [ [0,'asc'], [1,'asc'] ]
-      }
-    );
-
-    } );
-</script>
 
 
 <table id="seedpoints_table" class="display">

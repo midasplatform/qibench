@@ -1,5 +1,10 @@
 Include(LesionSegmentationQIBench.config.bms)
 
+SetApp(php @PHP)
+SetAppOption(php.script --version)
+Run(output ${php})
+
+
 # Loop through the sequence of job indices
 ForEach(jobInd ${cfg_jobInds})
 

@@ -22,71 +22,6 @@ class Qibench_SeedpointsController extends Qibench_AppController {
   public $_moduleComponents = array('Execute', 'LesionseedpointCSV');
 
 
-  
-  /*
-   * 
-   * 
-   * no longer used
-   * 
-   */
-  /**
-   * execute an executable pipeline against the parameters
-   *   /
-  public function executeAction()
-    {
-    set_time_limit(0); 
-    if(!$this->logged || !$this->userSession->Dao->getAdmin() == 1)
-      {
-      throw new Zend_Exception("You should be an administrator");
-      }
-
-    if($this->_request->isPost())
-      {
-      // for now hard code all the ids
-      $inputFolderId = 14; // TODO  HACK HARDCODE
-      // the output folder
-      $outputFolderId = 15; // TODO HACK HARDCODE
-      $jobConfigParams = $this->ModuleComponent->Execute->runDemo($this->userSession->Dao, $inputFolderId, $outputFolderId);
- 
-      // transpose the jobsConfigParams to display output table rows
-      $outputTable = array();
-      $numJobs = sizeof($jobConfigParams['cfg_itemNames']);
-      for($i = 0; $i < $numJobs; $i++)
-        {
-        $row = array();
-        $itemName = $jobConfigParams['cfg_itemNames'][$i];
-        $itemNameParts = explode('_', $itemName);
-        $caseId = $itemNameParts[0];
-        $lesionId = $itemNameParts[1];
-        $row[] = $caseId;
-        $row[] = $lesionId;
-        $row[] = 'lstk';
-        // input item
-        $row[] = $jobConfigParams['cfg_itemIDs'][$i];
-        // output item
-        $row[] = 'output item';
-        // ???
-        $row[] = $jobConfigParams['cfg_runItemIDs'][$i];
-        // volume
-        $row[] = 'volume read-out';
-        $outputTable[] = $row;
-        }
-      //$this->view->header = $this->t("Case Reading Results");
-      //$this->view->outputRows = $outputTable;
-    
-      
-      //echo "here"; exit();
-      
-      //$this->_redirect('/qibench/seedpoints/execute');
-      //echo "here";
-      //exit();
-      
-      }
-      
-    }
-
- */   
-    
     
     
   /** view seedpoints action 
@@ -104,11 +39,12 @@ class Qibench_SeedpointsController extends Qibench_AppController {
     set_time_limit(0); 
     if(!$this->logged || !$this->userSession->Dao->getAdmin() == 1)
       {
-      throw new Zend_Exception("You should be an administrator");
+      $this->_redirect('/');
+      //throw new Zend_Exception("You should be an administrator");
       }
     
     // test code to load test data
-    //$filepath = BASE_PATH . '/modules/qibench/tests/testfiles/lesionseedpoints.txt';
+    //$filepath = BASE_PATH . '/modules/qibench/tests/testfiles/lesionseedpoints_full.txt';
     //$contents = file($filepath, FILE_IGNORE_NEW_LINES);
     //$lesionseedpointDaos = $this->ModuleComponent->LesionseedpointCSV->parseAndSave(false, ',', $contents);
  
@@ -130,12 +66,11 @@ class Qibench_SeedpointsController extends Qibench_AppController {
       // actually they will be created in a new folder under this folder
       
    // added cleaning the output buffer in case that would help, it didn't   
-ob_start();
-      $jobConfigParams = $this->ModuleComponent->Execute->runDemo($this->userSession->Dao, $inputFolderId, $outputFolderId);
-ob_end_clean();
+//ob_start();
 
-
-       
+      
+      list($runDao, $jobConfigParams) = $this->ModuleComponent->Execute->runDemo($this->userSession->Dao, $inputFolderId, $outputFolderId);
+//ob_end_clean();
       // transpose the jobsConfigParams to display output table rows
       $outputTable = array();
       $numJobs = sizeof($jobConfigParams['cfg_itemNames']);
@@ -171,7 +106,8 @@ ob_end_clean();
   'Run Item' => 'Run Item',
   'Volume Read-Out' => 'Volume Read-Out');
 
-      
+   $this->view->tableHeaders = $tableHeaders;
+     
 /* 
  * 
  * some test data I was playing around with,
@@ -196,7 +132,7 @@ ob_end_clean();
         }
       $this->view->tableData = $tableData;
 */
-      $this->view->tableData = $outputTable
+      $this->view->tableData = $outputTable;
       
       
       

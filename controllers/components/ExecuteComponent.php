@@ -183,6 +183,8 @@ class Qibench_ExecuteComponent extends AppComponent
       $runItemDao = new Qibench_RunItemDao();
       $runItemDao->setQibenchRunId($runId);
       $runItemDao->setInputItemId($itemId);
+      $runItemDao->setCaseId($seedpointDao->getCaseId());
+      $runItemDao->setLesionId($seedpointDao->getLesionId());
       // HACK need to set outputItemId somewhere
       $runItemModel->save($runItemDao);
       $jobConfigParams['cfg_runItemIDs'][] = $runItemDao->getKey();
@@ -232,6 +234,7 @@ class Qibench_ExecuteComponent extends AppComponent
     $runDao->setBatchmakeTaskId($taskDao->getBatchmakeTaskId());
     $runDao->setInputFolderId($inputFolderId);
     $runDao->setOutputFolderId($outputFolderId);
+    $runDao->setExecutableName('lstk');
     $runModel->save($runDao);
     // now that we have created a run, create a new folder for this run under
     // the outputFolder
@@ -276,17 +279,19 @@ class Qibench_ExecuteComponent extends AppComponent
     
     $kwbatchmakeComponent->preparePipelineBmms($taskDao->getWorkDir(), array($bmScript));
 
+    //$kwbatchmakeComponent->compileBatchMakeScript($taskDao->getWorkDir(), $bmScript);
+    $dagScript = $kwbatchmakeComponent->generateCondorDag($taskDao->getWorkDir(), $bmScript);
+    $kwbatchmakeComponent->condorSubmitDag($taskDao->getWorkDir(), $dagScript);
     
+    /*
 //when i uncomment either of these two lines, even though they work, the
 //view breaks
 
-    //$kwbatchmakeComponent->compileBatchMakeScript($taskDao->getWorkDir(), $bmScript);
-    //$dagScript = @$kwbatchmakeComponent->generateCondorDag($taskDao->getWorkDir(), $bmScript);
 
 // this line is commented out just to not take so much time/cpu, it submits to condor
-    //$kwbatchmakeComponent->condorSubmitDag($taskDao->getWorkDir(), $dagScript);
-
-    return $jobConfigParams;
+         //$kwbatchmakeComponent->condorSubmitDag($taskDao->getWorkDir(), $dagScript);
+*/
+    return array($runDao, $jobConfigParams);
     }
     
     

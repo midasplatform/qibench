@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS `qibench_run` (
 CREATE TABLE IF NOT EXISTS `qibench_run_item` (
   `qibench_run_item_id` bigint(20) NOT NULL AUTO_INCREMENT,
   `qibench_run_id` bigint(20) NOT NULL,
+  `case_id` text NOT NULL,
+  `lesion_id` text NOT NULL,
   `input_item_id` bigint(20) NOT NULL,
   `output_item_id` bigint(20) NOT NULL,
   `condor_dag_job_id` bigint(20) NOT NULL,
