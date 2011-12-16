@@ -69,12 +69,32 @@ foreach($this->tableData as $row)
        </form>";
             //<span>{$this->seedpointsForm['submitLoad']}{$this->seedpointsForm['seepointsFileItemId']}</span>
        ?>
- 
-<table id="seeds2" class="tablesorter">
+
+    
+    
+    <table id="topdebug">
+<?php
+foreach($this->topDebug as $prop => $value)
+  {
+  echo '<tr><td>'.$prop.'</td><td>'.$value.'</td></tr>';
+  }
+?>
+        
+    </table>    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+<table id="debugRowsTable" class="tablesorter">
   <thead>
     <tr>
 <?php
-foreach($this->tableHeaders as $dbCol => $tableHeader)
+foreach($this->debugTableHeaders as $dbCol => $tableHeader)
   {
   echo '<th>'.$tableHeader.'</th>';
   }
@@ -84,7 +104,7 @@ foreach($this->tableHeaders as $dbCol => $tableHeader)
   <tbody>
 
 <?php
-foreach($this->tableData as $row)
+foreach($this->debugTableData as $row)
   {
   echo '<tr>';
   foreach($row as $col)

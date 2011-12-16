@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS `qibench_run` (
   `qibench_run_id` bigint(20) NOT NULL AUTO_INCREMENT,
   `executable_name` text NOT NULL,
   `params` text NOT NULL,
+  `seedpoints_itemrevision_id` bigint(20) NOT NULL,
   `batchmake_task_id` bigint(20) NOT NULL,
   `input_folder_id` bigint(20) NOT NULL,
   `output_folder_id` bigint(20) NOT NULL,

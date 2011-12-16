@@ -71,20 +71,45 @@ def setRunItemOutputItemId(communicator, token, qibenchrunitemid, outputItemId):
     response = communicator.makeRequest('midas.qibench.runitem.outputitemid.set', parameters)
     return response
 
+def addCondorJob(communicator, token, taskid, jobdefinitionfilename, outputfilename, errorfilename, logfilename, postfilename):
+    """
+    Adds the condor_job row
+    """
+    parameters = dict()
+    parameters['token'] = token
+    parameters['batchmaketaskid'] = taskid
+    parameters['jobdefinitionfilename'] = jobdefinitionfilename
+    parameters['outputfilename'] = outputfilename
+    parameters['errorfilename'] = errorfilename
+    parameters['logfilename'] = logfilename
+    parameters['postfilename'] = postfilename
+    parameters['XDEBUG_SESSION_START'] = 'netbeans-xdebug'
+    print parameters
+    response = communicator.makeRequest('midas.batchmake.add.condor.job', parameters)
+    return response
 
 
-
-
-
+def setRunitemCondorjob(communicator, token, qibenchrunitemid, condorjobid):
+    """
+    Sets the condor job id on the runitem
+    """
+    parameters = dict()
+    parameters['token'] = token
+    parameters['qibenchrunitemid'] = qibenchrunitemid
+    parameters['condorjobid'] = condorjobid
+    print parameters
+    response = communicator.makeRequest('midas.qibench.runitem.condorjob.set', parameters)
+    return response
 
 
 
 if __name__ == "__main__":
-  (scriptName, outputDir, runId, outputFolderId, runItemId, itemName, outputAim, outputImage, outputMesh, jobname, jobid, returncode) = sys.argv
+  (scriptName, outputDir, taskId, dagjob, runId, outputFolderId, runItemId, itemName, outputAim, outputImage, outputMesh, jobname, jobid, returncode) = sys.argv
   jobidNum = jobname[3:]
   cfgParams = loadConfig('config.cfg')
 
-  log = open(os.path.join(outputDir,'postscript'+jobidNum+'.log'),'w')
+  postfilename = 'postscript'+jobidNum+'.log'
+  log = open(os.path.join(outputDir, postfilename),'w')
   log.write('Condor Post Script log\n\nsys.argv:\n\n')
   log.write('\t'.join(sys.argv))
 
@@ -102,6 +127,16 @@ if __name__ == "__main__":
   volume = parseVolumeMeasurement(exeOutputPath)
   log.write("\n\nvolume from output file:"+volume+"\n\n")
   
+  jobdefinitionfilename = dagjob +'.'+jobidNum+'.dagjob' 
+  exeError = 'bmGrid.' + jobidNum + '.error.txt' 
+  exeLog = 'bmGrid.' + jobidNum + '.log.txt' 
+
+  response = addCondorJob(interfaceMidas, token, taskId, jobdefinitionfilename, exeOutput, exeError, exeLog, postfilename)
+  log.write("\n\nCalled addCondorJob() with response:"+str(response)+"\n\n")
+  condorjobid = response['condor_job_id']
+
+  response = setRunitemCondorjob(interfaceMidas, token, runItemId, condorjobid)
+  log.write("\n\nCalled setRunitemCondorjob() with response:"+str(response)+"\n\n")
 
   response = addRunItemScalarvalue(interfaceMidas, token, runItemId, 'CaseReading', volume)
   log.write("\n\nCalled addRunItemScalarvalue("+runItemId+", "+"CaseReading"+", "+volume+") with response:"+str(response)+"\n\n")

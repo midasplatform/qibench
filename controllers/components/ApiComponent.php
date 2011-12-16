@@ -41,9 +41,9 @@ class Qibench_ApiComponent extends AppComponent
 
   /**
    * add a scalarvalue to a QibenchRunItem
-   * @param qibenchrunitemid 
-   * @param name 
-   * @param value 
+   * @param qibenchrunitemid
+   * @param name
+   * @param value
    * @return The QibenchRunItemScalarValueDao
    */
   function runitemscalarvalueAdd($args)
@@ -61,10 +61,8 @@ class Qibench_ApiComponent extends AppComponent
 
     $modelLoader = new MIDAS_ModelLoader();
     $runitemModel = $modelLoader->loadModel('RunItem','qibench');
-//var_dump($runitemModel); //exit;
-    //$runitem = $runitemModel->load($qibenchrunitemid);
     $runitemDaos = $runitemModel->findBy('qibench_run_item_id',$qibenchrunitemid);
-    $runitem = $runitemDaos[0];//qibench_run_item_id
+    $runitem = $runitemDaos[0];
     // HACK SOME CHECKING FOR ITEM VALUE
     $runitemscalarvalueModel = $modelLoader->loadModel('RunItemScalarvalue','qibench');
     $runitemscalarvalueModel->loadDaoClass('RunItemScalarvalueDao', 'qibench');
@@ -75,11 +73,11 @@ class Qibench_ApiComponent extends AppComponent
     $runitemscalarvalueModel->save($runitemscalarvalueDao);
     return $runitemscalarvalueDao;
     }
-    
+
   /**
    * set the outputItemId on a QibenchRunItem
-   * @param qibenchrunitemid 
-   * @param outputitemid 
+   * @param qibenchrunitemid
+   * @param outputitemid
    * @return The QibenchRunItemDao
    */
   function runitemOutputitemidSet($args)
@@ -93,30 +91,43 @@ class Qibench_ApiComponent extends AppComponent
 
     $qibenchrunitemid = $args['qibenchrunitemid'];
     $outputitemid = $args['outputitemid'];
-//echo "qi[$qibenchrunitemid]";exit();
     $modelLoader = new MIDAS_ModelLoader();
     $runitemModel = $modelLoader->loadModel('RunItem','qibench');
     $runitemModel->loadDaoClass('RunItemDao', 'qibench');
 
     $runitemDaos = $runitemModel->findBy('qibench_run_item_id',$qibenchrunitemid);
-    $runitemDao = $runitemDaos[0];//qibench_run_item_id
-  //  $runitemDao = $runitemModel->load($qibenchrunitemid);
-//var_dump($runitemDao); 
-//echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";var_dump($runitemModel); 
-    // HACK SOME CHECKING FOR ITEM VALUE
+    $runitemDao = $runitemDaos[0];
     $runitemDao->setOutputItemId($outputitemid);
-  //echo "just set"; exit();
     $runitemModel->save($runitemDao);
-   //echo "justsaved";exit(); 
-//echo "here";exit();
     return $runitemDao;
     }
-    
-    
-    
+
+
+  /**
+   * set the condor job id on a QibenchRunItem
+   * @param qibenchrunitemid
+   * @param condorjobid
+   * @return The QibenchRunItemScalarValueDao
+   */
+  function runitemCondorjobSet($args)
+    {
+    $this->_validateParams($args, array('qibenchrunitemid', 'condorjobid'));
+    $userDao = $this->_getUser($args);
+    if(!$userDao)
+      {
+      throw new Exception('Anonymous users may not set condorjob-s on runitem-s');
+      }
+    $qibenchrunitemid = $args['qibenchrunitemid'];
+    $condorjobid = $args['condorjobid'];
+
+    $modelLoader = new MIDAS_ModelLoader();
+    $runitemModel = $modelLoader->loadModel('RunItem','qibench');
+    $runitemDao = $runitemModel->load($qibenchrunitemid);
+    $runitemDao->setCondorDagJobId($condorjobid);
+    $runitemModel->save($runitemDao);
+    return $runitemDao;
+    }
+
+
 
 } // end class
-
-
-
-
