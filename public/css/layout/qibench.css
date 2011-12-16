@@ -1,0 +1,55 @@
+/* changes for execute.qi-bench.org, from main.css */
+div.Header {
+  margin: 0 0 15px;
+  padding:5px 30px;
+  background-color: #56758b;
+  -webkit-box-shadow: #666 0 0 3px;
+  box-shadow: #666 0 0 3px;
+  -moz-box-shadow: 0px 0px 3px #666; 
+}
+
+
+
+
+/* CHANGES for execute.qi-bench.org, from view.css */
+
+.Header {
+	background-color: white !important;
+	background-image:url('http://bach.bbmsc.com/midas3/core/public/images/qi-bench/executehead.jpg') !important;
+	background-repeat:no-repeat;
+	height:200px;
+	position:relative;
+}
+
+.HeaderContent {
+	position:absolute;
+	top:135px;
+	left:360px;
+}
+
+div.HeaderLogo {
+	display:none;
+}
+
+.viewHeader {
+	background-color:#51C7EB !important;
+	color:white !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+
+.HeaderAction ul li {
+	background-image: -moz-linear-gradient(center top , #7ED5F1 0%, #51C7EB 100%) !important;
+}
+
+.SubMainContent {
+	border:solid 3px #51C7EB !important;
+}
+
+.SideBar ul li.active {
+	background-color: #51C7EB !important;
+}
+
+.TopbarLeft {
+	visibility:hidden;
+}

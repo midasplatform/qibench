@@ -15,9 +15,4 @@ require_once BASE_PATH . '/modules/qibench/models/base/LesionseedpointModelBase.
 /** Qibench_LesionseedpointModel */
 class Qibench_LesionseedpointModel extends Qibench_LesionseedpointModelBase {
 
-  /** get All */
-  function getAll() 
-    {
-    return $this->database->getAll('Lesionseedpoint', 'qibench');
-    }
 }

@@ -28,7 +28,7 @@ abstract class Qibench_RunItemModelBase extends Qibench_AppModel {
       'case_id' => array('type' => MIDAS_DATA),
       'lesion_id' => array('type' => MIDAS_DATA),
       'input_item_id' => array('type' => MIDAS_DATA),
-      'output_item_id' => array('type' => MIDAS_DATA), 
+      'output_item_id' => array('type' => MIDAS_DATA),
       'input_folder_id' => array('type' => MIDAS_DATA),
       'output_folder_id' => array('type' => MIDAS_DATA),
       'condor_dag_job_id' => array('type' => MIDAS_DATA)
