@@ -50,7 +50,7 @@ class Qibench_Notification extends ApiEnabled_Notification
 
     $imgsWebroot = Zend_Registry::get('webroot').'/modules/qibench/public/images/';
 
-    $html = '<div id="footer-logos"><span id="copyright">' . $leftText . '</span>';
+    $html = '<span id="copyright">' . $leftText . '</span><span id="footer-logos">';
     foreach($imgs as $img)
       {
       $imgHtml = '<img alt="'.$img['alt'].'" src="'.$imgsWebroot . $img['img'].'">';
